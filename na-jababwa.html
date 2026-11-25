@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>나잡아봐라</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(#173b4c,#10252d);color:#fff;font-family:system-ui,sans-serif;display:grid;place-items:center;padding:14px}
+.game{width:min(100%,700px);background:#1b3441;border:4px solid #ffcc47;border-radius:22px;padding:16px;box-shadow:0 15px 40px #0005}
+h1{text-align:center;font-size:clamp(32px,7vw,54px);margin:4px 0;color:#ffdf65;text-shadow:3px 4px #8c5225;letter-spacing:2px}
+.photo{width:100%;max-height:220px;object-fit:cover;border-radius:14px;border:3px solid #f8d55b;object-position:center;margin:4px 0 12px}
+.stats{display:flex;justify-content:space-around;background:#102631;padding:12px;border-radius:12px;font-size:20px;font-weight:900;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.hole{aspect-ratio:1;background:radial-gradient(ellipse,#392c1f 0%,#1a211c 65%);border:4px solid #5d8b47;border-radius:50%;position:relative;overflow:hidden;cursor:pointer;display:grid;place-items:center;user-select:none}
+.hole:active{transform:scale(.97)}
+.face{width:83%;height:83%;border-radius:50%;object-fit:cover;border:4px solid #f5d75a;display:none;pointer-events:none}
+.hole.up .face{display:block;animation:pop .12s ease-out}
+@keyframes pop{from{transform:scale(.55)}to{transform:scale(1)}}
+.hole.up{background:#2d6340;border-color:#e4c454}
+.btnrow{display:flex;gap:8px;margin-top:12px}
+button{flex:1;border:0;border-radius:12px;padding:12px;font-size:17px;font-weight:900;background:#ffd64e;color:#382817;cursor:pointer}
+#message{text-align:center;min-height:24px;margin:10px 0 0;color:#bfe7d1}
+.small{text-align:center;color:#b5d0d8;font-size:12px;margin-top:8px}
+</style></head><body><main class="game">
+<h1>나잡아봐라!</h1>
+<img class="photo" src="na-photo.jpg" alt="게임 속 등장 사진" onerror="this.style.display='none'">
+<div class="stats"><span>점수 <b id="score">0</b></span><span>시간 <b id="time">30</b></span><span>최고 <b id="best">0</b></span></div>
+<div class="grid" id="grid"></div>
+<div class="btnrow"><button id="start">게임 시작</button><button id="reset">초기화</button></div>
+<p id="message">30초 동안 나타나는 얼굴을 눌러 점수를 올려!</p><div class="small">사진을 눌러 잡기 · 한 번에 하나씩 나타남</div>
+</main>
+<script>
+const grid=document.getElementById('grid');let score=0,time=30,running=false,timer=null,moleTimer=null,current=-1,best=Number(localStorage.getItem('najababwaBest')||0);
+document.getElementById('best').textContent=best;
+const holes=[];
+for(let i=0;i<9;i++){const h=document.createElement('button');h.className='hole';h.setAttribute('aria-label','두더지 구멍');h.innerHTML='<img class="face" src="na-photo.jpg" alt="잡기 대상">';h.onclick=()=>hit(i);grid.appendChild(h);holes.push(h);}
+function hideAll(){holes.forEach(h=>h.classList.remove('up'));current=-1}
+function pop(){if(!running)return;hideAll();let i=Math.floor(Math.random()*holes.length);current=i;holes[i].classList.add('up');moleTimer=setTimeout(()=>{if(current===i)hideAll();pop()},650+Math.random()*450)}
+function hit(i){if(!running||i!==current)return;score++;document.getElementById('score').textContent=score;document.getElementById('message').textContent='잡았다! +1';hideAll();clearTimeout(moleTimer)}
+function finish(){running=false;clearInterval(timer);clearTimeout(moleTimer);hideAll();document.getElementById('message').textContent='끝! 최종 점수 '+score+'점';if(score>best){best=score;localStorage.setItem('najababwaBest',best);document.getElementById('best').textContent=best}}
+function start(){finish();score=0;time=30;running=true;document.getElementById('score').textContent=0;document.getElementById('time').textContent=30;document.getElementById('message').textContent='잡아봐!';pop();timer=setInterval(()=>{time--;document.getElementById('time').textContent=time;if(time<=0)finish()},1000)}
+document.getElementById('start').onclick=start;document.getElementById('reset').onclick=()=>{finish();score=0;time=30;document.getElementById('score').textContent=0;document.getElementById('time').textContent=30;document.getElementById('message').textContent='준비됐으면 게임 시작!'}
+</script></body></html>
